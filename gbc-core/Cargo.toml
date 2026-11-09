@@ -1,0 +1,20 @@
+[package]
+name = "gbc-core"
+description = "Platform-independent Game Boy Color emulation core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+# Intentionally empty.
+#
+# The core must stay free of platform dependencies. It does not perform
+# windowing, audio output, filesystem access, or any other I/O. The frontend
+# loads ROMs and save RAM and passes them in/out as byte slices.
+
+[dev-dependencies]
+# Used only by integration tests that dump framebuffers to PNG for visual
+# inspection. This dependency does NOT appear in the library's public API.
+png.workspace = true

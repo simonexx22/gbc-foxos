@@ -1,0 +1,16 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Enforce LF for Rust source, TOML configurations, and YAML workflows
+*.rs text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Binary files: prevent CRLF conversion and diff mangling
+*.gb binary
+*.gbc binary
+*.png binary
+*.sav binary
+*.state binary

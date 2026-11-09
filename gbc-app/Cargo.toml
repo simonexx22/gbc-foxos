@@ -1,0 +1,14 @@
+[package]
+name = "gbc-app"
+description = "Desktop frontend for the Game Boy Color emulator"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+gbc-core.workspace = true
+winit.workspace = true
+pixels.workspace = true
+cpal.workspace = true

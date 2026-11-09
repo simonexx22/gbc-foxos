@@ -1,0 +1,26 @@
+[workspace]
+members = ["gbc-core", "gbc-app"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+authors = ["gbcemu contributors"]
+
+[workspace.dependencies]
+gbc-core = { path = "gbc-core" }
+
+# Frontend-only dependencies. `gbc-core` must never depend on these.
+winit = "0.30.13"
+pixels = "0.17.2"
+cpal = "0.18.2"
+
+# Test/dev-only helpers used by integration tests in gbc-core.
+png = "0.17"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

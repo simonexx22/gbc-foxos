@@ -1,0 +1,14 @@
+/target
+**/*.rs.bk
+*.sav
+*.state
+.DS_Store
+
+# Commercial and non-redistributable ROMs
+gbc-core/tests/roms/tetris.gb
+gbc-core/tests/roms/starfall.gbc
+gbc-core/tests/roms/game.gbc
+gbc-core/tests/roms/links-awakening.gbc
+gbc-core/tests/roms/pokemon-crystal.gbc
+gbc-core/tests/roms/*.sav
+gbc-core/tests/roms/*.state
