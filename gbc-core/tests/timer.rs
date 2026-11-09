@@ -15,14 +15,7 @@ fn blargg_instr_timing() {
         .join("roms")
         .join("instr_timing")
         .join("instr_timing.gb");
-
-    if !rom.exists() {
-        eprintln!(
-            "SKIP: instr_timing.gb not found at {} — skipping test",
-            rom.display()
-        );
-        return;
-    }
+    assert!(rom.exists(), "missing ROM: {rom:?}");
 
     let (output, cycles) = common::run_blargg(&rom);
 
@@ -45,15 +38,13 @@ fn mooneye_timer_acceptance() {
         .join("roms")
         .join("mooneye")
         .join("timer");
-    let mut roms = common::rom_files(&rom_dir);
+    assert!(rom_dir.exists(), "missing ROM directory: {rom_dir:?}");
 
-    if roms.is_empty() {
-        eprintln!(
-            "SKIP: no Mooneye timer ROMs found in {} — skipping test",
-            rom_dir.display()
-        );
-        return;
-    }
+    let mut roms = common::rom_files(&rom_dir);
+    assert!(
+        !roms.is_empty(),
+        "missing ROM: discovered ROM list in {rom_dir:?} is empty"
+    );
 
     roms.sort();
     let mut failures = Vec::new();

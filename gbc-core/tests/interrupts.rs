@@ -15,15 +15,13 @@ fn mooneye_interrupt_acceptance() {
         .join("roms")
         .join("mooneye")
         .join("interrupts");
-    let mut roms = common::rom_files(&rom_dir);
+    assert!(rom_dir.exists(), "missing ROM directory: {rom_dir:?}");
 
-    if roms.is_empty() {
-        eprintln!(
-            "SKIP: no Mooneye interrupt ROMs found in {} — skipping test",
-            rom_dir.display()
-        );
-        return;
-    }
+    let mut roms = common::rom_files(&rom_dir);
+    assert!(
+        !roms.is_empty(),
+        "missing ROM: discovered ROM list in {rom_dir:?} is empty"
+    );
 
     roms.sort();
     let mut failures = Vec::new();

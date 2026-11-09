@@ -105,10 +105,7 @@ fn rom_path(name: &str) -> PathBuf {
 #[test]
 fn dmg_acid2() {
     let path = rom_path("dmg-acid2.gb");
-    if !path.exists() {
-        eprintln!("SKIP: dmg-acid2.gb not found at {}", path.display());
-        return;
-    }
+    assert!(path.exists(), "missing ROM: {path:?}");
 
     let rom = fs::read(&path).expect("cannot read dmg-acid2.gb");
     println!("dmg_acid2: running 120 frames…");
@@ -118,46 +115,45 @@ fn dmg_acid2() {
     dump_png(&out, gb.framebuffer());
     println!("dmg_acid2: inspect {}", out.display());
 
-    // Verify against reference if available
+    // Verify against reference image
     let ref_path = rom_path("reference-dmg-acid2.png");
-    if ref_path.exists() {
-        let (w, h, bpp, ref_data) = load_png_raw(&ref_path);
-        assert_eq!(w, SCREEN_WIDTH as u32);
-        assert_eq!(h, SCREEN_HEIGHT as u32);
+    assert!(ref_path.exists(), "missing reference image: {ref_path:?}");
+    let (w, h, bpp, ref_data) = load_png_raw(&ref_path);
+    assert_eq!(w, SCREEN_WIDTH as u32);
+    assert_eq!(h, SCREEN_HEIGHT as u32);
 
-        let dmg_rgba = [
-            [0xE0, 0xF8, 0xD0],
-            [0x88, 0xC0, 0x70],
-            [0x34, 0x68, 0x56],
-            [0x08, 0x18, 0x20],
-        ];
+    let dmg_rgba = [
+        [0xE0, 0xF8, 0xD0],
+        [0x88, 0xC0, 0x70],
+        [0x34, 0x68, 0x56],
+        [0x08, 0x18, 0x20],
+    ];
 
-        let fb = gb.framebuffer();
-        let mut diff_count = 0;
-        for idx in 0..SCREEN_WIDTH * SCREEN_HEIGHT {
-            let act_rgb = [fb[idx * 4], fb[idx * 4 + 1], fb[idx * 4 + 2]];
-            let act_shade = dmg_rgba.iter().position(|&c| c == act_rgb).unwrap_or(99);
-            let ref_val = ref_data[idx * bpp];
-            let ref_shade = match ref_val {
-                255 => 0,
-                170 => 1,
-                85 => 2,
-                0 => 3,
-                _ => 98,
-            };
-            if act_shade != ref_shade {
-                diff_count += 1;
-            }
+    let fb = gb.framebuffer();
+    let mut diff_count = 0;
+    for idx in 0..SCREEN_WIDTH * SCREEN_HEIGHT {
+        let act_rgb = [fb[idx * 4], fb[idx * 4 + 1], fb[idx * 4 + 2]];
+        let act_shade = dmg_rgba.iter().position(|&c| c == act_rgb).unwrap_or(99);
+        let ref_val = ref_data[idx * bpp];
+        let ref_shade = match ref_val {
+            255 => 0,
+            170 => 1,
+            85 => 2,
+            0 => 3,
+            _ => 98,
+        };
+        if act_shade != ref_shade {
+            diff_count += 1;
         }
-        println!(
-            "dmg_acid2: pixel differences: {diff_count} / {}",
-            SCREEN_WIDTH * SCREEN_HEIGHT
-        );
-        assert_eq!(
-            diff_count, 0,
-            "dmg-acid2 has {diff_count} pixel differences from reference"
-        );
     }
+    println!(
+        "dmg_acid2: pixel differences: {diff_count} / {}",
+        SCREEN_WIDTH * SCREEN_HEIGHT
+    );
+    assert_eq!(
+        diff_count, 0,
+        "dmg-acid2 has {diff_count} pixel differences from reference"
+    );
 }
 
 /// cgb-acid2 (CGB mode).
@@ -167,10 +163,7 @@ fn dmg_acid2() {
 #[test]
 fn cgb_acid2() {
     let path = rom_path("cgb-acid2.gbc");
-    if !path.exists() {
-        eprintln!("SKIP: cgb-acid2.gbc not found at {}", path.display());
-        return;
-    }
+    assert!(path.exists(), "missing ROM: {path:?}");
 
     let rom = fs::read(&path).expect("cannot read cgb-acid2.gbc");
     println!("cgb_acid2: running 120 frames…");
@@ -180,31 +173,30 @@ fn cgb_acid2() {
     dump_png(&out, gb.framebuffer());
     println!("cgb_acid2: inspect {}", out.display());
 
-    // Verify against reference if available
+    // Verify against reference image
     let ref_path = rom_path("reference-cgb-acid2.png");
-    if ref_path.exists() {
-        let (w, h, bpp, ref_data) = load_png_raw(&ref_path);
-        assert_eq!(w, SCREEN_WIDTH as u32);
-        assert_eq!(h, SCREEN_HEIGHT as u32);
+    assert!(ref_path.exists(), "missing reference image: {ref_path:?}");
+    let (w, h, bpp, ref_data) = load_png_raw(&ref_path);
+    assert_eq!(w, SCREEN_WIDTH as u32);
+    assert_eq!(h, SCREEN_HEIGHT as u32);
 
-        let fb = gb.framebuffer();
-        let mut diff_count = 0;
-        for idx in 0..SCREEN_WIDTH * SCREEN_HEIGHT {
-            let act_rgb = &fb[idx * 4..idx * 4 + 3];
-            let ref_rgb = &ref_data[idx * bpp..idx * bpp + 3];
-            if act_rgb != ref_rgb {
-                diff_count += 1;
-            }
+    let fb = gb.framebuffer();
+    let mut diff_count = 0;
+    for idx in 0..SCREEN_WIDTH * SCREEN_HEIGHT {
+        let act_rgb = &fb[idx * 4..idx * 4 + 3];
+        let ref_rgb = &ref_data[idx * bpp..idx * bpp + 3];
+        if act_rgb != ref_rgb {
+            diff_count += 1;
         }
-        println!(
-            "cgb_acid2: pixel differences: {diff_count} / {}",
-            SCREEN_WIDTH * SCREEN_HEIGHT
-        );
-        assert_eq!(
-            diff_count, 0,
-            "cgb-acid2 has {diff_count} pixel differences from reference"
-        );
     }
+    println!(
+        "cgb_acid2: pixel differences: {diff_count} / {}",
+        SCREEN_WIDTH * SCREEN_HEIGHT
+    );
+    assert_eq!(
+        diff_count, 0,
+        "cgb-acid2 has {diff_count} pixel differences from reference"
+    );
 }
 
 /// Generic helper: run any ROM file for a given number of frames and dump it.
