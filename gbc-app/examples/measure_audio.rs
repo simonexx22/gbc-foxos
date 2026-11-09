@@ -44,10 +44,8 @@ fn main() {
             let interval = frame_interval.mul_f64(factor);
 
             next_frame += interval;
-            if next_frame < now {
-                if (now - next_frame) > Duration::from_millis(100) {
-                    next_frame = now + interval;
-                }
+            if next_frame < now && (now - next_frame) > Duration::from_millis(100) {
+                next_frame = now + interval;
             }
         }
         std::thread::sleep(Duration::from_millis(1));

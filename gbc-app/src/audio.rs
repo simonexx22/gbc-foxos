@@ -434,7 +434,7 @@ mod tests {
         resampler.resample_and_map(&input, 1.0, &mut out);
         assert!(!out.is_empty());
         for &s in &out {
-            assert!(s >= 0.0 && s <= 1.0);
+            assert!((0.0..=1.0).contains(&s));
         }
     }
 
