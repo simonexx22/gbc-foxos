@@ -525,6 +525,16 @@ pub struct Apu {
 
     pub sample_accumulator: u32,
     pub samples: Vec<f32>,
+
+    pub ch1_enabled: bool,
+    pub ch2_enabled: bool,
+    pub ch3_enabled: bool,
+    pub ch4_enabled: bool,
+
+    pub hpf_in_l: f32,
+    pub hpf_out_l: f32,
+    pub hpf_in_r: f32,
+    pub hpf_out_r: f32,
 }
 
 impl Default for Apu {
@@ -541,11 +551,30 @@ impl Default for Apu {
             frame_sequencer_step: 0,
             sample_accumulator: 0,
             samples: Vec::with_capacity(AUDIO_SAMPLE_RATE as usize / 60 * AUDIO_CHANNELS * 2),
+            ch1_enabled: true,
+            ch2_enabled: true,
+            ch3_enabled: true,
+            ch4_enabled: true,
+            hpf_in_l: 0.0,
+            hpf_out_l: 0.0,
+            hpf_in_r: 0.0,
+            hpf_out_r: 0.0,
         }
     }
 }
 
 impl Apu {
+    /// Enables or disables sound generation for an APU channel (1-4).
+    pub fn set_channel_enabled(&mut self, channel: usize, enabled: bool) {
+        match channel {
+            1 => self.ch1_enabled = enabled,
+            2 => self.ch2_enabled = enabled,
+            3 => self.ch3_enabled = enabled,
+            4 => self.ch4_enabled = enabled,
+            _ => {}
+        }
+    }
+
     pub(crate) fn save_state(&self, w: &mut StateWriter) {
         self.ch1.save_state(w);
         self.ch2.save_state(w);
@@ -758,6 +787,12 @@ impl Apu {
     /// Advances the APU by `cycles` base T-cycles (4.194304 MHz clock).
     pub fn tick(&mut self, cycles: u32) {
         if (self.nr52 & 0x80) == 0 {
+            self.sample_accumulator += cycles * AUDIO_SAMPLE_RATE;
+            while self.sample_accumulator >= CLOCK_SPEED {
+                self.sample_accumulator -= CLOCK_SPEED;
+                self.samples.push(0.0);
+                self.samples.push(0.0);
+            }
             return;
         }
 
@@ -833,13 +868,20 @@ impl Apu {
         let s3 = self.ch3.sample();
         let s4 = self.ch4.sample();
 
-        // Convert DAC 0..15 to normalized [-1.0, 1.0]
-        let to_dac = |s: u8| -> f32 { (f32::from(s) / 7.5) - 1.0 };
+        // Convert DAC 0..15 to normalized [-1.0, 1.0].
+        // If the channel's DAC is disabled or user toggled channel off, output 0.0 (no analog output).
+        let to_dac = |s: u8, dac_on: bool, user_on: bool| -> f32 {
+            if !dac_on || !user_on {
+                0.0
+            } else {
+                (f32::from(s) / 7.5) - 1.0
+            }
+        };
 
-        let v1 = to_dac(s1);
-        let v2 = to_dac(s2);
-        let v3 = to_dac(s3);
-        let v4 = to_dac(s4);
+        let v1 = to_dac(s1, self.ch1.dac_enabled, self.ch1_enabled);
+        let v2 = to_dac(s2, self.ch2.dac_enabled, self.ch2_enabled);
+        let v3 = to_dac(s3, self.ch3.dac_enabled, self.ch3_enabled);
+        let v4 = to_dac(s4, self.ch4.dac_enabled, self.ch4_enabled);
 
         let mut left = 0.0f32;
         let mut right = 0.0f32;
@@ -876,12 +918,24 @@ impl Apu {
         let left_vol = f32::from((self.nr50 >> 4) & 0x07) + 1.0;
         let right_vol = f32::from(self.nr50 & 0x07) + 1.0;
 
-        // Scale by master volume and normalize
-        let master_gain = 0.25; // 4 channels mixed
-        let out_left = (left * master_gain * (left_vol / 8.0)).clamp(-1.0, 1.0);
-        let out_right = (right * master_gain * (right_vol / 8.0)).clamp(-1.0, 1.0);
+        // Scale by master volume and normalize (4 channels mixed, safe gain 0.25 prevents clipping)
+        let master_gain = 0.25;
+        let raw_left = left * master_gain * (left_vol / 8.0);
+        let raw_right = right * master_gain * (right_vol / 8.0);
 
-        self.samples.push(out_left);
-        self.samples.push(out_right);
+        // High-pass filter (DC blocker simulating GB hardware output capacitor):
+        // y[n] = x[n] - x[n-1] + R * y[n-1]
+        // R = 0.9995 gives a cutoff frequency around 3.8 Hz at 48 kHz.
+        const HPF_R: f32 = 0.9995;
+        let out_left = raw_left - self.hpf_in_l + HPF_R * self.hpf_out_l;
+        self.hpf_in_l = raw_left;
+        self.hpf_out_l = out_left;
+
+        let out_right = raw_right - self.hpf_in_r + HPF_R * self.hpf_out_r;
+        self.hpf_in_r = raw_right;
+        self.hpf_out_r = out_right;
+
+        self.samples.push(out_left.clamp(-1.0, 1.0));
+        self.samples.push(out_right.clamp(-1.0, 1.0));
     }
 }

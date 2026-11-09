@@ -81,6 +81,21 @@ impl Cartridge {
         self.cgb
     }
 
+    /// Title read from the cartridge header (0x0134..=0x0143).
+    pub fn title(&self) -> String {
+        if self.rom.len() < 0x0144 {
+            return String::new();
+        }
+        let title_bytes = &self.rom[0x0134..0x0143];
+        let end = title_bytes
+            .iter()
+            .position(|&b| b == 0)
+            .unwrap_or(title_bytes.len());
+        String::from_utf8_lossy(&title_bytes[..end])
+            .trim()
+            .to_string()
+    }
+
     /// Battery-backed cartridge RAM, or an empty slice when the cartridge has
     /// no save RAM.
     ///

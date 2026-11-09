@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: linux
+          - os: windows-latest
+            artifact_name: windows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libxkbcommon-dev libwayland-dev libx11-dev libgtk-3-dev
+
+      - name: Build release binary
+        run: cargo build --release -p gbc-app
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="$(git rev-parse --short HEAD)"
+          fi
+          PKG_NAME="gbc-foxos-${VERSION}-linux-x86_64"
+          mkdir -p staging
+          cp target/release/gbc-app staging/gbc-foxos
+          chmod +x staging/gbc-foxos
+          cp README.md staging/
+          cp LICENSE staging/
+          tar -czvf "${PKG_NAME}.tar.gz" -C staging gbc-foxos README.md LICENSE
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $VERSION = "${{ github.ref_name }}"
+          } else {
+            $VERSION = (git rev-parse --short HEAD).Trim()
+          }
+          $PKG_NAME = "gbc-foxos-$VERSION-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path staging
+          Copy-Item target/release/gbc-app.exe -Destination staging/gbc-foxos.exe
+          Copy-Item README.md -Destination staging/
+          Copy-Item LICENSE -Destination staging/
+          Push-Location staging
+          Compress-Archive -Path gbc-foxos.exe, README.md, LICENSE -DestinationPath "..\$PKG_NAME.zip"
+          Pop-Location
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.artifact_name }}
+          path: |
+            *.tar.gz
+            *.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Generate SHA256 checksums
+        run: |
+          sha256sum gbc-foxos-*.tar.gz gbc-foxos-*.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            gbc-foxos-*.tar.gz
+            gbc-foxos-*.zip
+            SHA256SUMS.txt
+          generate_release_notes: true

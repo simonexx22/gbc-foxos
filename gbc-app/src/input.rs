@@ -1,26 +1,33 @@
 //! Keyboard-to-button mapping.
 
 use gbc_core::Button;
-use winit::keyboard::{KeyCode, PhysicalKey};
+use winit::keyboard::PhysicalKey;
 
-/// Maps a physical key to a Game Boy button.
-///
-/// Both arrow keys and WASD are accepted for the D-pad. `Z`/`J` is A,
-/// `X`/`K` is B, `Enter` is Start, and `Backspace` is Select.
-pub fn button_for_key(key: PhysicalKey) -> Option<Button> {
+use crate::config::GameBoyControls;
+
+/// Maps a physical key to a Game Boy button using the active controls configuration.
+pub fn button_for_key(key: PhysicalKey, controls: &GameBoyControls) -> Option<Button> {
     let PhysicalKey::Code(code) = key else {
         return None;
     };
 
-    Some(match code {
-        KeyCode::ArrowRight | KeyCode::KeyD => Button::Right,
-        KeyCode::ArrowLeft | KeyCode::KeyA => Button::Left,
-        KeyCode::ArrowUp | KeyCode::KeyW => Button::Up,
-        KeyCode::ArrowDown | KeyCode::KeyS => Button::Down,
-        KeyCode::KeyZ | KeyCode::KeyJ => Button::A,
-        KeyCode::KeyX | KeyCode::KeyK => Button::B,
-        KeyCode::Enter => Button::Start,
-        KeyCode::Backspace => Button::Select,
-        _ => return None,
-    })
+    if code == controls.up {
+        Some(Button::Up)
+    } else if code == controls.down {
+        Some(Button::Down)
+    } else if code == controls.left {
+        Some(Button::Left)
+    } else if code == controls.right {
+        Some(Button::Right)
+    } else if code == controls.a {
+        Some(Button::A)
+    } else if code == controls.b {
+        Some(Button::B)
+    } else if code == controls.start {
+        Some(Button::Start)
+    } else if code == controls.select {
+        Some(Button::Select)
+    } else {
+        None
+    }
 }

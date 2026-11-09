@@ -1,65 +1,66 @@
-<svg width="500" height="700" viewBox="0 0 500 700" xmlns="http://www.w3.org/2000/svg">
+<svg width="500" height="800" viewBox="0 0 500 800" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Maska wycinająca fizyczną "dziurę" na środku konsoli -->
+    <!-- Maska wycinająca fizyczną przezroczystą dziurę na ekran w proporcji 10:9 (350x315) -->
     <mask id="screen-hole">
       <rect x="0" y="0" width="100%" height="100%" fill="white" />
-      <rect x="110" y="110" width="280" height="200" rx="4" ry="4" fill="black" />
+      <rect x="75" y="65" width="350" height="315" rx="6" ry="6" fill="black" />
     </mask>
   </defs>
 
-  <!-- Główna obudowa poddana maskowaniu (wycinaniu) -->
+  <!-- Główna obudowa i szara ramka poddane maskowaniu (przezroczysta dziura) -->
   <g mask="url(#screen-hole)">
-    <!-- Pomarańczowa bryła konsoli -->
-    <rect x="50" y="50" width="400" height="600" rx="20" ry="20" fill="#f97316" stroke="#111827" stroke-width="6" />
-    <!-- Szara ramka dookoła ekranu -->
-    <rect x="80" y="80" width="340" height="280" rx="12" ry="12" fill="#9ca3af" stroke="#111827" stroke-width="5" />
+    <!-- Pomarańczowa bryła konsoli (FoxBoy) docięta idealnie do obrysu viewBox bez pustych marginesów -->
+    <rect x="3" y="3" width="494" height="794" rx="28" ry="28" fill="#f97316" stroke="#111827" stroke-width="6" />
+    <!-- Szara ramka (bezel) dookoła ekranu -->
+    <rect x="45" y="38" width="410" height="394" rx="16" ry="16" fill="#9ca3af" stroke="#111827" stroke-width="5" />
   </g>
 
-  <!-- Wewnętrzna czarna ramka obrysowująca wyciętą przezroczystą dziurę na grę -->
-  <rect x="110" y="110" width="280" height="200" rx="4" ry="4" fill="none" stroke="#111827" stroke-width="5" />
+  <!-- Wskaźnik zasilania (Power LED) na szarej ramce -->
+  <circle cx="62" cy="145" r="5" fill="#ef4444" stroke="#111827" stroke-width="1.5" />
+  <text x="62" y="133" font-family="sans-serif" font-size="7" font-weight="bold" fill="#374151" text-anchor="middle" letter-spacing="1">BATTERY</text>
 
-  <!-- Napis "My FoxBoy" na obudowie -->
-  <text x="250" y="340" font-family="&#39;Comic Sans MS&#39;, &#39;Chalkboard SE&#39;, cursive, sans-serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="2">My FoxBoy</text>
+  <!-- Wewnętrzna czarna ramka obrysowująca przezroczystą dziurę na grę (10:9 aspect ratio) -->
+  <rect x="75" y="65" width="350" height="315" rx="6" ry="6" fill="none" stroke="#111827" stroke-width="5" />
 
-  <!-- LOGO: Lisek z pikselowymi okularami wstawiony pośrodku -->
-  
+  <!-- Napis "My FoxBoy" na szarej ramce pod ekranem -->
+  <text x="250" y="416" font-family="'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="2">My FoxBoy</text>
 
-  <!-- Krzyżak (D-Pad) - idealnie zbalansowany po lewej stronie (środek X=130, Y=455) -->
-  <g transform="translate(130, 455)">
+  <!-- Krzyżak (D-Pad) - środek (X=125, Y=555) -->
+  <g transform="translate(125, 555)">
     <!-- Zielony D-Pad -->
-    <path d="M -15 -15 v -30 h 30 v 30 h 30 v 30 h -30 v 30 h -30 v -30 h -30 v -30 z" fill="#22c55e" stroke="#111827" stroke-width="4" stroke-linejoin="round" />
-    <!-- Wytłoczenia na krzyżaku -->
-    <polygon points="0,-35 -5,-27 5,-27" fill="#14532d" />
-    <polygon points="0,35 -5,27 5,27" fill="#14532d" />
-    <polygon points="-35,0 -27,-5 -27,5" fill="#14532d" />
-    <polygon points="35,0 27,-5 27,5" fill="#14532d" />
-    <circle cx="0" cy="0" r="4" fill="#14532d" opacity="0.8" />
+    <path d="M -16 -16 v -39 h 32 v 39 h 39 v 32 h -39 v 39 h -32 v -39 h -39 v -32 z" fill="#22c55e" stroke="#111827" stroke-width="4" stroke-linejoin="round" />
+    <!-- Wytłoczenia i strzałki kierunkowe -->
+    <polygon points="0,-45 -6,-35 6,-35" fill="#14532d" />
+    <polygon points="0,45 -6,35 6,35" fill="#14532d" />
+    <polygon points="-45,0 -35,-6 -35,6" fill="#14532d" />
+    <polygon points="45,0 35,-6 35,6" fill="#14532d" />
+    <circle cx="0" cy="0" r="5" fill="#14532d" opacity="0.8" />
   </g>
 
-  <!-- Przyciski akcji (A, B) - idealnie zbalansowane po prawej stronie (środek X=370, Y=455) -->
-  <g transform="translate(400, 425)">
-    <circle cx="0" cy="0" r="28" fill="#0ea5e9" stroke="#111827" stroke-width="4" />
-    <text x="0" y="8" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#0c4a6e" text-anchor="middle">B</text>
+  <!-- Przyciski akcji (A, B) - zbalansowane ukośnie po prawej stronie -->
+  <g transform="translate(335, 580)">
+    <circle cx="0" cy="0" r="30" fill="#0ea5e9" stroke="#111827" stroke-width="4" />
+    <text x="0" y="9" font-family="Arial, sans-serif" font-weight="bold" font-size="26" fill="#0c4a6e" text-anchor="middle">B</text>
   </g>
-  <g transform="translate(340, 485)">
-    <circle cx="0" cy="0" r="28" fill="#0ea5e9" stroke="#111827" stroke-width="4" />
-    <text x="0" y="8" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#0c4a6e" text-anchor="middle">A</text>
-  </g>
-
-  <!-- Przyciski systemowe (Reset, Start) - idealnie symetryczne względem pionowej osi -->
-  <g transform="translate(185, 575)">
-    <rect x="0" y="0" width="50" height="16" rx="8" ry="8" fill="#111827" />
-    <text x="25" y="32" font-family="sans-serif" font-size="12" font-weight="bold" fill="#78350f" text-anchor="middle">RESET</text>
-  </g>
-  <g transform="translate(265, 575)">
-    <rect x="0" y="0" width="50" height="16" rx="8" ry="8" fill="#111827" />
-    <text x="25" y="32" font-family="sans-serif" font-size="12" font-weight="bold" fill="#78350f" text-anchor="middle">START</text>
+  <g transform="translate(415, 515)">
+    <circle cx="0" cy="0" r="30" fill="#0ea5e9" stroke="#111827" stroke-width="4" />
+    <text x="0" y="9" font-family="Arial, sans-serif" font-weight="bold" font-size="26" fill="#0c4a6e" text-anchor="middle">A</text>
   </g>
 
-  <!-- Głośnik (Kreski) -->
-  <g transform="translate(370, 590)">
-    <line x1="0" y1="0" x2="30" y2="30" stroke="#111827" stroke-width="5" stroke-linecap="round" />
-    <line x1="20" y1="-10" x2="50" y2="20" stroke="#111827" stroke-width="5" stroke-linecap="round" />
-    <line x1="40" y1="-20" x2="70" y2="10" stroke="#111827" stroke-width="5" stroke-linecap="round" />
+  <!-- Przyciski systemowe (Reset, Start) - symetryczne, lekko pochylone -->
+  <g transform="translate(190, 695)">
+    <rect x="-27" y="-9" width="54" height="18" rx="9" ry="9" fill="#111827" transform="rotate(-25)" />
+    <text x="0" y="28" font-family="sans-serif" font-size="11" font-weight="bold" fill="#78350f" text-anchor="middle" letter-spacing="1">RESET</text>
+  </g>
+  <g transform="translate(275, 695)">
+    <rect x="-27" y="-9" width="54" height="18" rx="9" ry="9" fill="#111827" transform="rotate(-25)" />
+    <text x="0" y="28" font-family="sans-serif" font-size="11" font-weight="bold" fill="#78350f" text-anchor="middle" letter-spacing="1">START</text>
+  </g>
+
+  <!-- Głośnik (Slanted speaker grille) -->
+  <g transform="translate(370, 715)">
+    <line x1="5" y1="-10" x2="35" y2="20" stroke="#111827" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="25" y1="-20" x2="55" y2="10" stroke="#111827" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="45" y1="-30" x2="75" y2="0" stroke="#111827" stroke-width="4.5" stroke-linecap="round" />
   </g>
 </svg>

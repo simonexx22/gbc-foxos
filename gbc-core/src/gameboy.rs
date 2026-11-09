@@ -122,6 +122,42 @@ impl Gameboy {
         self.cartridge.set_save_ram(data);
     }
 
+    /// Cartridge title from header.
+    pub fn title(&self) -> String {
+        self.cartridge.title()
+    }
+
+    /// Whether this is running a Game Boy Color cartridge.
+    pub fn is_cgb(&self) -> bool {
+        self.cartridge.is_cgb()
+    }
+
+    /// Configures the 4 DMG palette colors (RGBA).
+    pub fn set_dmg_palette(&mut self, palette: [[u8; 4]; 4]) {
+        self.ppu.set_dmg_palette(palette);
+    }
+
+    /// Enables or disables CGB color correction.
+    pub fn set_cgb_color_correction(&mut self, enabled: bool) {
+        self.ppu.set_cgb_color_correction(enabled);
+    }
+
+    /// Enables or disables sound generation for an APU channel (1-4).
+    pub fn set_channel_enabled(&mut self, channel: usize, enabled: bool) {
+        self.apu.set_channel_enabled(channel, enabled);
+    }
+
+    /// Resets the console state, preserving the ROM and save RAM.
+    pub fn reset(&mut self) {
+        let rom = self.cartridge.rom().to_vec();
+        let save = self.cartridge.save_ram().to_vec();
+        let mut new_gb = Gameboy::new(rom);
+        if !save.is_empty() {
+            new_gb.set_save_ram(&save);
+        }
+        *self = new_gb;
+    }
+
     /// All serial output captured so far.
     ///
     /// Blargg's test ROMs use the serial port to report results, so this is

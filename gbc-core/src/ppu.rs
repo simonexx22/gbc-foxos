@@ -100,6 +100,8 @@ pub struct Ppu {
     stat_line: bool,
     vblank_irq: bool,
     stat_irq: bool,
+    dmg_palette: [[u8; 4]; 4],
+    cgb_color_correction: bool,
 }
 
 impl Default for Ppu {
@@ -146,7 +148,19 @@ impl Ppu {
             stat_line: false,
             vblank_irq: false,
             stat_irq: false,
+            dmg_palette: DMG_RGBA,
+            cgb_color_correction: false,
         }
+    }
+
+    /// Sets the 4 RGBA shades used when rendering DMG graphics.
+    pub fn set_dmg_palette(&mut self, palette: [[u8; 4]; 4]) {
+        self.dmg_palette = palette;
+    }
+
+    /// Enables or disables CGB color correction.
+    pub fn set_cgb_color_correction(&mut self, enabled: bool) {
+        self.cgb_color_correction = enabled;
     }
 
     /// The current frame as tightly packed RGBA8888 bytes
@@ -510,9 +524,9 @@ impl Ppu {
                 bg_priority[x] = self.cgb && bg_win_enable && attr & 0x80 != 0;
 
                 colors[x] = rgba_to_u32(if self.cgb {
-                    cgb_color(&self.bg_palette, (attr & 0x07) as usize, color)
+                    self.cgb_color(&self.bg_palette, (attr & 0x07) as usize, color)
                 } else {
-                    dmg_color(self.bgp, color)
+                    self.dmg_color(self.bgp, color)
                 });
             }
         }
@@ -609,14 +623,14 @@ impl Ppu {
                     }
 
                     let rgba = if self.cgb {
-                        cgb_color(&self.obj_palette, (attr & 0x07) as usize, color)
+                        self.cgb_color(&self.obj_palette, (attr & 0x07) as usize, color)
                     } else {
                         let pal = if attr & 0x10 != 0 {
                             self.obp1
                         } else {
                             self.obp0
                         };
-                        dmg_color(pal, color)
+                        self.dmg_color(pal, color)
                     };
 
                     // Overwrite — higher-priority sprites are drawn last.
@@ -670,31 +684,38 @@ impl Ppu {
             (0x1000i32 + i32::from(tile as i8) * 16) as usize
         }
     }
+
+    fn dmg_color(&self, palette: u8, color: u8) -> [u8; 4] {
+        let shade = (palette >> (color * 2)) & 0x03;
+        self.dmg_palette[shade as usize]
+    }
+
+    /// Converts a 15-bit GBC colour to RGBA8888.
+    fn cgb_color(&self, palette: &[u8; 64], palette_index: usize, color: u8) -> [u8; 4] {
+        let off = palette_index * 8 + color as usize * 2;
+        let raw = u16::from_le_bytes([palette[off], palette[off + 1]]) & 0x7FFF;
+        let r5 = (raw & 0x1F) as u32;
+        let g5 = ((raw >> 5) & 0x1F) as u32;
+        let b5 = ((raw >> 10) & 0x1F) as u32;
+
+        if self.cgb_color_correction {
+            let r = (r5 * 13 + g5 * 2 + b5) >> 1;
+            let g = (g5 * 3 + b5) << 1;
+            let b = (r5 * 3 + g5 * 2 + b5 * 11) >> 1;
+            [r.min(255) as u8, g.min(255) as u8, b.min(255) as u8, 0xFF]
+        } else {
+            [
+                ((r5 << 3) | (r5 >> 2)) as u8,
+                ((g5 << 3) | (g5 >> 2)) as u8,
+                ((b5 << 3) | (b5 >> 2)) as u8,
+                0xFF,
+            ]
+        }
+    }
 }
 
 fn rgba_to_u32(rgba: [u8; 4]) -> u32 {
     u32::from_le_bytes(rgba)
-}
-
-fn dmg_color(palette: u8, color: u8) -> [u8; 4] {
-    let shade = (palette >> (color * 2)) & 0x03;
-    DMG_RGBA[shade as usize]
-}
-
-/// Converts a 15-bit GBC colour to RGBA8888.
-/// Each 5-bit channel is expanded to 8 bits: `v5 << 3 | v5 >> 2`.
-fn cgb_color(palette: &[u8; 64], palette_index: usize, color: u8) -> [u8; 4] {
-    let off = palette_index * 8 + color as usize * 2;
-    let raw = u16::from_le_bytes([palette[off], palette[off + 1]]) & 0x7FFF;
-    let r5 = (raw & 0x1F) as u8;
-    let g5 = ((raw >> 5) & 0x1F) as u8;
-    let b5 = ((raw >> 10) & 0x1F) as u8;
-    [
-        (r5 << 3) | (r5 >> 2),
-        (g5 << 3) | (g5 >> 2),
-        (b5 << 3) | (b5 >> 2),
-        0xFF,
-    ]
 }
 
 #[cfg(test)]
