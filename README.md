@@ -142,7 +142,7 @@ Testy weryfikują m.in. instrukcje procesora SM83, timery, przerwania oraz ukła
 
 ---
 
-## Licencja
-
+## Licencja 
+Obudowa MyFoxBoy: autor @foxo_kido95,Nie jest objęta licencją MIT.
 Projekt udostępniany jest na warunkach licencji [MIT](LICENSE).
 
